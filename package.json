@@ -1,0 +1,38 @@
+{
+  "name": "software-knowledge-graph",
+  "version": "1.0.0",
+  "description": "A tool for creating and managing software knowledge graphs using Neo4j and LLM",
+  "main": "build/index.js",
+  "type": "module",
+  "author": "Salim Bakri",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node --env-file=.env build/index.js",
+    "dev": "node --env-file=.env --loader ts-node/esm src/index.ts",
+    "seed": "node --env-file=.env --loader ts-node/esm src/scripts/dynamic-seed-knowledge-graph.ts",
+    "seed:clear": "node --env-file=.env --loader ts-node/esm src/scripts/dynamic-seed-knowledge-graph.ts --clear"
+  },
+  "keywords": [
+    "knowledge-graph",
+    "neo4j",
+    "learning",
+    "programming",
+    "education"
+  ],
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@langchain/anthropic": "^0.3.16",
+    "@langchain/core": "^0.3.43",
+    "@langchain/openai": "^0.5.4",
+    "neo4j-driver": "^5.28.1",
+    "uuid": "^9.0.1",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/uuid": "^9.0.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
