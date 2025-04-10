@@ -16,7 +16,7 @@ This tool leverages LLMs (like Claude or GPT) to automatically generate and popu
 
 ## Requirements
 
-- Node.js 16+
+- Node.js 22+
 - Neo4j 4.4+ running locally or remotely
 - LLM API access (Anthropic's Claude or OpenAI)
 
