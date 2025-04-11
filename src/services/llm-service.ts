@@ -3,16 +3,9 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { logger } from '../utils/logger.js';
-
-// LLM Service configuration
-export interface LlmServiceConfig {
-  provider: 'anthropic' | 'openai';
-  apiKey: string;
-  modelName: string;
-  temperature: number;
-  endpoint: string;
-  maxTokens: number;
-}
+import { extractJSON } from '../utils/json-parser.js';
+import { LlmServiceConfig, PromptConfig, SeedingConfig } from '../types/index.js';
+import { setTimeout } from 'timers/promises';
 
 export class LlmService {
   private model: BaseChatModel;
@@ -135,4 +128,71 @@ export class LlmService {
       throw new Error(`LLM analysis with prefill failed: ${(error as Error).message}`);
     }
   }
-} 
+
+  /**
+   * Makes LLM requests with retry logic and improved JSON parsing
+   * @param promptConfig Object containing primary, fallback prompts and prefill
+   * @param config Seeding configuration with retry settings
+   * @param retryCount Current retry attempt
+   * @returns Parsed JSON result or null if parsing fails
+   */
+  async makeLlmRequest<T>(
+    promptConfig: PromptConfig,
+    config: SeedingConfig,
+    retryCount: number = 0
+  ): Promise<T | null> {
+    try {
+      const { primaryPrompt, prefill, fallbackPrompt } = promptConfig;
+      
+      // For first attempt, use the primary prompt, with optional prefill
+      let response;
+      if (prefill && retryCount === 0) {
+        // Use prefill technique if provided and this is the first attempt
+        response = await this.analyzeTextWithPrefill(primaryPrompt, prefill);
+      } else if (fallbackPrompt && retryCount > 0 && config.useSimplifiedFallbacks) {
+        // Use simplified fallback prompt on retries if available
+        response = await this.analyzeText(fallbackPrompt);
+      } else {
+        // Standard request
+        response = await this.analyzeText(primaryPrompt);
+      }
+      
+      // Extract and parse JSON using the utility function
+      const parsed = extractJSON(response);
+      logger.info('PARSED', parsed);
+
+      if (parsed) {
+        return parsed as T;
+      }
+
+      // Retry logic
+      if (retryCount < config.maxRetries) {
+        logger.warn(`Failed to parse JSON from LLM (attempt ${retryCount + 1}/${config.maxRetries + 1}), retrying...`);
+
+        // Exponential backoff
+        const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 8000);
+        await setTimeout(backoffTime);
+
+        return this.makeLlmRequest<T>(promptConfig, config, retryCount + 1);
+      }
+
+      logger.error('All retry attempts failed to extract valid JSON');
+      return null;
+    } catch (error) {
+      logger.error('Error making LLM request', { error });
+
+      // Retry logic for errors
+      if (retryCount < config.maxRetries) {
+        logger.warn(`LLM request error (attempt ${retryCount + 1}/${config.maxRetries + 1}), retrying...`);
+
+        // Exponential backoff
+        const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 8000);
+        await setTimeout(backoffTime);
+
+        return this.makeLlmRequest<T>(promptConfig, config, retryCount + 1);
+      }
+
+      return null;
+    }
+  }
+}

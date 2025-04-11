@@ -1,23 +1,6 @@
 ﻿import neo4j from 'neo4j-driver';
 import { logger } from '../utils/logger.js';
-
-export interface KnowledgeUnitData {
-  id?: string;
-  name: string;
-  type: "domain" | "subject" | "topic" | "concept" | "technique";
-  description: string;
-  complexity: number;
-}
-
-export interface RelationshipData {
-  sourceId?: string;
-  sourceName?: string;
-  targetId?: string;
-  targetName?: string;
-  type: "contains" | "requires" | "related_to";
-  strength: number;
-  explanation: string;
-}
+import { KnowledgeUnitData, RelationshipData } from '../types/index.js';
 
 export class Neo4jConnection {
   driver: neo4j.Driver;
@@ -299,7 +282,7 @@ export class Neo4jConnection {
   }
 
   // Helper to convert Neo4j integers to JavaScript numbers
-  private toNumber(value: any): number {
+  toNumber(value: any): number {
     return typeof value === 'object' && value.toNumber ? value.toNumber() : Number(value);
   }
 

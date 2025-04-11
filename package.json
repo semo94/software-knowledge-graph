@@ -2,16 +2,14 @@
   "name": "software-knowledge-graph",
   "version": "1.0.0",
   "description": "A tool for creating and managing software knowledge graphs using Neo4j and LLM",
-  "main": "build/index.js",
+  "main": "build/main.js",
   "type": "module",
   "author": "Salim Bakri",
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "start": "node --env-file=.env build/index.js",
-    "dev": "node --env-file=.env --loader ts-node/esm src/index.ts",
-    "seed": "node --env-file=.env --loader ts-node/esm src/scripts/dynamic-seed-knowledge-graph.ts",
-    "seed:clear": "node --env-file=.env --loader ts-node/esm src/scripts/dynamic-seed-knowledge-graph.ts --clear"
+    "start": "node --env-file=.env build/main.js",
+    "dev": "node --env-file=.env --loader ts-node/esm src/main.ts"
   },
   "keywords": [
     "knowledge-graph",

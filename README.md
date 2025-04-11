@@ -35,22 +35,17 @@ This tool leverages LLMs (like Claude or GPT) to automatically generate and popu
 
 ## Usage
 
-### Seed a new knowledge graph:
+### Run in dev mode:
 
 ```
-npm run seed
+npm run dev
 ```
 
-### Clear existing data and create a new knowledge graph:
+### Run compiled script:
 
 ```
-npm run seed:clear
-```
-
-### Control the seeding process with command-line arguments:
-
-```
-npm run seed -- --depth=4 --limit=500 --skip-validation
+npm run build
+npm start
 ```
 
 Available options:

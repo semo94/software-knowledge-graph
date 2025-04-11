@@ -2,6 +2,8 @@
  * Server configuration values - can be overridden by environment variables
  */
 
+import { SeedingConfig } from "../types/index.js";
+
 // Basic application information
 export const APP_NAME = process.env.APP_NAME || "software-knowledge-graph";
 export const APP_VERSION = process.env.APP_VERSION || "1.0.0";
@@ -100,3 +102,46 @@ export function logConfigValues(logger: any) {
     LLM_MAX_TOKENS
   }));
 } 
+
+/**
+ * Default configuration for the seeding process
+ */
+export const defaultConfig: SeedingConfig = {
+  maxExplorationDepth: 3,
+  childrenPerUnit: 3,
+  relationshipsPerUnit: 5,
+  maxTotalEntities: 200, // Prevent runaway exploration
+  llmCallDelay: 1000,
+  clearExistingData: false,
+  enableValidation: true,
+  maxRetries: 3,
+  useSimplifiedFallbacks: true
+};
+
+/**
+ * Parse command line arguments to create a seeding configuration
+ */
+export function parseCliArgs(args: string[]): SeedingConfig {
+  const clearArg = args.find(arg => arg === '--clear');
+  const depthArg = args.find(arg => arg.startsWith('--depth='));
+  const limitArg = args.find(arg => arg.startsWith('--limit='));
+  const skipValidationArg = args.find(arg => arg === '--skip-validation');
+  const retriesArg = args.find(arg => arg.startsWith('--retries='));
+  const noFallbacksArg = args.find(arg => arg === '--no-fallbacks');
+
+  return {
+    ...defaultConfig,
+    clearExistingData: !!clearArg,
+    maxExplorationDepth: depthArg
+      ? parseInt(depthArg.split('=')[1], 10)
+      : defaultConfig.maxExplorationDepth,
+    maxTotalEntities: limitArg
+      ? parseInt(limitArg.split('=')[1], 10)
+      : defaultConfig.maxTotalEntities,
+    enableValidation: !skipValidationArg,
+    maxRetries: retriesArg
+      ? parseInt(retriesArg.split('=')[1], 10)
+      : defaultConfig.maxRetries,
+    useSimplifiedFallbacks: !noFallbacksArg
+  };
+}
